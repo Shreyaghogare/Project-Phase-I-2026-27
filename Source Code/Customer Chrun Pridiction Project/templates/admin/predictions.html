@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}All predictions | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">ADMINISTRATION / MODEL OUTPUT</p><h1>All predictions</h1><p class="lede">Workspace-wide prediction records with the account that submitted each one.</p></section>
+<form class="filters" method="get" action="{{ url_for('admin.predictions') }}"><label>Search<input type="search" name="q" value="{{ filters.q }}" placeholder="User or customer category"></label><label>Prediction<select name="prediction"><option value="">All</option><option value="Yes" {% if filters.prediction == 'Yes' %}selected{% endif %}>Yes</option><option value="No" {% if filters.prediction == 'No' %}selected{% endif %}>No</option></select></label><label>Risk<select name="risk"><option value="">All</option>{% for level in ['Low Risk','Medium Risk','High Risk'] %}<option value="{{ level }}" {% if filters.risk == level %}selected{% endif %}>{{ level }}</option>{% endfor %}</select></label><button class="button primary" type="submit">Apply</button><a class="button secondary" href="{{ url_for('main.export_history', q=filters.q, prediction=filters.prediction, risk=filters.risk) }}">Export CSV</a></form>
+{% include "_prediction_table.html" %}
+<div class="pagination"><span>{{ pagination.total }} records · Page {{ pagination.page }} of {{ pagination.pages or 1 }}</span><span>{% if pagination.has_prev %}<a href="{{ url_for('admin.predictions', page=pagination.prev_num, **filters) }}">← Previous</a>{% endif %}{% if pagination.has_next %}<a href="{{ url_for('admin.predictions', page=pagination.next_num, **filters) }}">Next →</a>{% endif %}</span></div>
+{% endblock %}

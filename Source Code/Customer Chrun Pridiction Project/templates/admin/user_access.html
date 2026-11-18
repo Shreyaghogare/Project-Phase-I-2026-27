@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Company access | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">ADMINISTRATION / ACCOUNTS</p>
+    <h1>Company access</h1>
+    <p class="lede">Choose which active company workspaces {{ user.name }} can open for customer predictions.</p>
+</section>
+<section class="panel">
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% for company in companies %}
+        <label class="checkbox-row">
+            <input type="checkbox" name="company_ids" value="{{ company.id }}" {% if company.id in selected_ids %}checked{% endif %}>
+            <span><strong>{{ company.name }}</strong><small class="muted">{{ company.industry }} · {{ company.slug }}</small></span>
+        </label>
+        {% else %}
+        <p class="empty-state">There are no active company workspaces to assign.</p>
+        {% endfor %}
+        <div class="form-actions">
+            <button class="button primary" type="submit">Save company access</button>
+            <a class="button quiet" href="{{ url_for('admin.users') }}">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

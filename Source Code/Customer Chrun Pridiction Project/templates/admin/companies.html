@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Company management | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">ADMINISTRATION / COMPANIES</p>
+    <h1>Company management</h1>
+    <p class="lede">Review every company workspace, dataset coverage, model history, and user access.</p>
+</section>
+
+<section class="panel table-panel">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Industry</th>
+                    <th>Datasets</th>
+                    <th>Models</th>
+                    <th>Access</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in companies %}
+                <tr>
+                    <td><strong>{{ row.company.name }}</strong><br><small class="muted">/{{ row.company.slug }}</small></td>
+                    <td>{{ row.company.industry }}</td>
+                    <td>{{ row.dataset_count }}</td>
+                    <td>{{ row.model_count }}</td>
+                    <td>{{ row.access_count }}</td>
+                    <td><span class="status-dot {{ 'on' if row.company.is_active else 'off' }}">{{ 'Active' if row.company.is_active else 'Inactive' }}</span></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="empty-state">No companies have been created yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

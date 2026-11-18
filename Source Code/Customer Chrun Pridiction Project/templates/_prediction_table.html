@@ -1,0 +1,19 @@
+<section class="panel table-panel prediction-table-panel">
+    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Company</th>{% if is_admin %}<th>Predicted by</th>{% endif %}<th>Record and inputs</th><th>Prediction</th><th>Probability</th><th>Risk</th><th>Actions</th></tr></thead><tbody>
+    {% for item in predictions %}<tr>
+        {% set inputs = item.input_json or {} %}
+        {% set record = namespace(value=none) %}
+        {% for key, value in inputs.items() %}{% if key|lower in ['customerid', 'userid', 'policyid', 'accountid', 'subscriberid', 'clientid', 'memberid', 'recordid'] %}{% set record.value = value %}{% endif %}{% endfor %}
+        <td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ item.company_ref.name if item.company_ref else 'Legacy record' }}</td>{% if is_admin %}<td>{{ item.user.name }}</td>{% endif %}
+        <td class="history-inputs">{% if record.value %}<strong>{{ record.value }}</strong>{% endif %}<div>{% if inputs %}{% for key, value in inputs.items() %}{% if key|lower not in ['customerid', 'userid', 'policyid', 'accountid', 'subscriberid', 'clientid', 'memberid', 'recordid'] and loop.index <= 4 %}<span><b>{{ key }}:</b> {{ value }}</span>{% endif %}{% endfor %}{% else %}<span>Age: {{ item.age if item.age is not none else '—' }}</span><span>Gender: {{ item.gender or '—' }}</span>{% endif %}</div></td>
+        <td><span class="outcome {{ item.prediction|lower }}">{{ item.prediction }}</span></td><td>{{ (item.probability * 100)|round(2) }}%</td><td><span class="risk-label {{ item.risk_level|lower|replace(' ', '-') }}">{{ item.risk_level }}</span></td>
+        <td><div class="table-actions"><button class="icon-button" type="button" data-dialog-open="prediction-{{ item.id }}">Details</button><a class="icon-button" href="{{ url_for('main.prediction_report', prediction_id=item.id) }}">PDF</a><form method="post" action="{{ url_for('main.delete_prediction', prediction_id=item.id) }}" onsubmit="return confirm('Delete this prediction?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-button danger-link" type="submit">Delete</button></form></div></td>
+    </tr>
+    <dialog id="prediction-{{ item.id }}"><div class="dialog-head"><h2>Prediction details</h2><button class="dialog-close" type="button" aria-label="Close" data-dialog-close>&times;</button></div><div class="dialog-body"><dl>
+        <div><dt>Company</dt><dd>{{ item.company_ref.name if item.company_ref else 'Legacy record' }}</dd></div><div><dt>Prediction</dt><dd>{{ item.prediction }}</dd></div><div><dt>Probability</dt><dd>{{ (item.probability * 100)|round(2) }}%</dd></div><div><dt>Risk level</dt><dd>{{ item.risk_level }}</dd></div>
+        {% if inputs %}{% for key, value in inputs.items() %}<div><dt>{{ key }}</dt><dd>{{ value if value is not none else '—' }}</dd></div>{% endfor %}{% else %}<div><dt>Age</dt><dd>{{ item.age if item.age is not none else '—' }}</dd></div><div><dt>Gender</dt><dd>{{ item.gender or '—' }}</dd></div><div><dt>Tenure</dt><dd>{{ item.tenure if item.tenure is not none else '—' }}</dd></div>{% endif %}
+        <div><dt>Risk factors</dt><dd>{{ item.risk_factors|join(', ') if item.risk_factors else '—' }}</dd></div><div><dt>Suggested actions</dt><dd>{{ item.suggested_actions|join(', ') if item.suggested_actions else '—' }}</dd></div>
+    </dl></div></dialog>
+    {% else %}<tr><td colspan="8" class="empty-state">No predictions match these filters.</td></tr>{% endfor %}
+    </tbody></table></div>
+</section>

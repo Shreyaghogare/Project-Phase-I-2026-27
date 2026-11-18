@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Create account | Churn Compass{% endblock %}
+{% block content %}
+<section class="auth-layout">
+    <div class="auth-aside"><p class="eyebrow">CUSTOMER INTELLIGENCE</p><h1>Build better retention decisions.</h1><p>Create a workspace account to predict churn, track outcomes, and support customers earlier.</p><div class="auth-stat"><strong>01</strong><span>One clear view of customer risk.</span></div></div>
+    <section class="panel auth-panel"><p class="eyebrow">NEW ACCOUNT</p><h2>Create your account</h2><p class="muted">Create an account to get started. Already registered? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+        <form method="post" novalidate id="register-form">
+            {{ form.hidden_tag() }}
+            <label for="name">Full name</label>{{ form.name(id="name", autocomplete="name", maxlength="50", placeholder="e.g. Asha Kumar", class="field-control") }}<span class="field-error" data-error="name">{{ form.name.errors[0] if form.name.errors else "" }}</span>
+            <label for="email">Email address</label>{{ form.email(id="email", type="email", autocomplete="email", placeholder="you@example.com", class="field-control") }}<span class="field-error" data-error="email">{{ form.email.errors[0] if form.email.errors else "" }}</span>
+            <label for="password">Password</label>{{ form.password(id="password", minlength="8", autocomplete="new-password", class="field-control", aria_describedby="strength-label") }}
+            <div class="strength-track"><span id="strength-meter"></span></div><div class="strength-copy"><span id="strength-label">Password strength</span><span id="strength-score"></span></div><span class="field-error" data-error="password">{{ form.password.errors[0] if form.password.errors else "" }}</span>
+            <label for="confirm_password">Confirm password</label>{{ form.confirm_password(id="confirm_password", minlength="8", autocomplete="new-password", class="field-control") }}<span class="field-error" data-error="confirm">{{ form.confirm_password.errors[0] if form.confirm_password.errors else "" }}</span>
+            <label for="admin_code">Admin registration code <span class="muted">(optional)</span></label>{{ form.admin_code(id="admin_code", autocomplete="off", class="field-control") }}{% for error in form.admin_code.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+            <p class="muted">Leave this blank for a regular user account. Admin access requires a code from the application administrator.</p>
+            <button class="button primary full" type="submit">Create account <span aria-hidden="true">→</span></button>
+        </form>
+    </section>
+</section>
+{% endblock %}
+{% block scripts %}<script>
+const passwordInput = document.getElementById('password');
+const confirmationInput = document.getElementById('confirm_password');
+const meter = document.getElementById('strength-meter');
+const scoreText = document.getElementById('strength-score');
+const passwordError = document.querySelector('[data-error="password"]');
+const confirmationError = document.querySelector('[data-error="confirm"]');
+const nameInput = document.getElementById('name');
+const emailInput = document.getElementById('email');
+const nameError = document.querySelector('[data-error="name"]');
+const emailError = document.querySelector('[data-error="email"]');
+function updatePasswordStrength() {
+    const value = passwordInput.value;
+    const checks = [value.length >= 8, /[A-Z]/.test(value), /[a-z]/.test(value), /\d/.test(value), /[^A-Za-z0-9]/.test(value)];
+    const score = checks.filter(Boolean).length;
+    const labels = ['Very weak', 'Weak', 'Fair', 'Good', 'Strong', 'Strong'];
+    meter.style.width = `${score * 20}%`;
+    meter.dataset.score = score;
+    scoreText.textContent = value ? labels[score] : '';
+    passwordError.textContent = value && score < 5 ? 'Use 8+ characters with uppercase, lowercase, a number, and a special character.' : '';
+    confirmationError.textContent = confirmationInput.value && confirmationInput.value !== value ? 'Passwords do not match.' : '';
+}
+    nameInput.addEventListener('input', () => {
+        const valid = /^[\p{L} ]{2,50}$/u.test(nameInput.value.trim());
+        nameError.textContent = nameInput.value && !valid ? 'Use 2-50 letters and spaces only.' : '';
+    });
+    emailInput.addEventListener('input', () => {
+        emailError.textContent = emailInput.value && !emailInput.validity.valid ? 'Enter a valid email address.' : '';
+    });
+passwordInput.addEventListener('input', updatePasswordStrength);
+confirmationInput.addEventListener('input', updatePasswordStrength);
+    document.getElementById('register-form').addEventListener('submit', (event) => {
+        updatePasswordStrength();
+        const nameValid = /^[\p{L} ]{2,50}$/u.test(nameInput.value.trim());
+        const emailValid = emailInput.validity.valid;
+        if (!nameValid || !emailValid || !passwordInput.validity.valid || passwordInput.value.length < 8 || confirmationInput.value !== passwordInput.value || passwordError.textContent || confirmationError.textContent) {
+            event.preventDefault();
+            nameError.textContent = nameValid ? '' : 'Use 2-50 letters and spaces only.';
+            emailError.textContent = emailValid ? '' : 'Enter a valid email address.';
+        }
+    });
+</script>{% endblock %}

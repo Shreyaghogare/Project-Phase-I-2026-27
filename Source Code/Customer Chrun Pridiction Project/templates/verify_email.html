@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Verify email | Churn Compass{% endblock %}
+{% block content %}
+<section class="auth-layout login-layout">
+    <div class="auth-aside">
+        <p class="eyebrow">CHURN COMPASS</p>
+        <h1>Verify your account.</h1>
+        <p>We've sent a 6-digit one-time verification code to your email address.</p>
+        <div class="signal-row">
+            <span class="signal-dot"></span>
+            <span>Secure access</span>
+            <span class="signal-line"></span>
+            <span>Email verified</span>
+        </div>
+    </div>
+    <section class="panel auth-panel">
+        <p class="eyebrow">SECURITY CHECK</p>
+        <h2>Verify your email</h2>
+        <p class="muted">Verification code sent to <strong>{{ email }}</strong></p>
+        <form method="post" action="{{ url_for('auth.verify_email', email=email) }}" novalidate>
+            {{ form.hidden_tag() }}
+            <label for="code">6-digit verification code</label>
+            {{ form.code(id="code", type="text", inputmode="numeric", pattern="[0-9]{6}", maxlength="6", autocomplete="one-time-code", placeholder="123456", class="field-control", autofocus=true) }}
+            {% for error in form.code.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+            <p class="muted" style="font-size: 0.875rem; margin-top: 0.25rem;">Codes expire after 10 minutes. 5 incorrect attempts will invalidate the code.</p>
+            <button class="button primary full" style="margin-top: 1rem;" type="submit">Verify and continue <span aria-hidden="true">→</span></button>
+        </form>
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle, #e5e7eb);">
+            <p class="muted" style="margin-bottom: 0.5rem;">Didn't receive the code or need a new one?</p>
+            <form method="post" action="{{ url_for('auth.resend_code') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="email" value="{{ email }}">
+                <button class="button secondary small" type="submit">Resend verification code</button>
+            </form>
+            <p class="muted" style="margin-top: 1rem;"><a href="{{ url_for('auth.login') }}">Return to sign in</a></p>
+        </div>
+    </section>
+</section>
+{% endblock %}

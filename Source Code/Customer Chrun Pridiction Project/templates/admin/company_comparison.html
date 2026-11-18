@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Company comparison | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">ADMINISTRATION / COMPARISON</p><h1>Company comparison</h1><p class="lede">Compare active datasets, model quality, and prediction activity across company workspaces.</p></section>
+<section class="panel table-panel comparison-panel">
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Company</th><th>Industry</th><th>Dataset</th><th>Active model</th><th>Accuracy</th><th>F1 score</th><th>ROC AUC</th><th>Predictions</th><th>Churn rate</th></tr></thead>
+            <tbody>
+                {% for row in companies %}
+                {% set metrics = row.model.metrics_json if row.model else {} %}
+                {% set prediction_total = row.predictions.total %}
+                <tr>
+                    <td><strong>{{ row.company.name }}</strong></td>
+                    <td>{{ row.company.industry }}</td>
+                    <td>{% if row.dataset %}{{ '{:,}'.format(row.dataset.row_count) }} rows{% else %}<span class="muted">No active dataset</span>{% endif %}</td>
+                    <td>{{ row.model.algorithm if row.model else 'Not trained' }}</td>
+                    <td>{% if metrics.get('accuracy') is not none %}{{ (metrics.get('accuracy') * 100)|round(1) }}%{% else %}—{% endif %}</td>
+                    <td>{% if metrics.get('f1') is not none %}{{ (metrics.get('f1') * 100)|round(1) }}%{% else %}—{% endif %}</td>
+                    <td>{% if metrics.get('roc_auc') is not none %}{{ (metrics.get('roc_auc') * 100)|round(1) }}%{% else %}—{% endif %}</td>
+                    <td>{{ prediction_total }}</td>
+                    <td>{% if prediction_total %}{{ ((row.predictions.churned / prediction_total) * 100)|round(1) }}%{% else %}—{% endif %}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="9" class="empty-state">No companies are available to compare.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

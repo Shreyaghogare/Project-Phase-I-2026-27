@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Customer prediction | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">CUSTOMER PROFILE</p><h1>Predict customer churn</h1><p class="lede">{% if mode == 'manual' %}Enter a profile for {{ active_company.name if active_company else 'the active company' }}. Values must match one complete row in its dataset.{% else %}Select an existing complete customer record from {{ active_company.name if active_company else 'the active company' }}. Its saved values are used for prediction.{% endif %}</p></section>
+{% if schema_mode %}
+{% if schema_error %}<div class="alert error" role="alert">{{ schema_error }}</div>
+{% else %}
+{% if not model_available %}<div class="alert warning" role="status">This company has no active model trained on its current dataset. An administrator must train the model before predictions can be saved.</div>{% endif %}
+<nav class="prediction-mode" aria-label="Prediction input mode">
+    <a href="{{ url_for('main.prediction', mode='id') }}" {% if mode == 'id' %}aria-current="page"{% endif %}>Select by ID</a>
+    <a href="{{ url_for('main.prediction', mode='manual') }}" {% if mode == 'manual' %}aria-current="page"{% endif %}>Enter values</a>
+</nav>
+<section class="panel prediction-workspace">
+    <form method="post" action="{{ url_for('main.predict', mode=mode) }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="mode" value="{{ mode }}">
+        {% if mode == 'manual' %}
+        <p class="manual-mode-note">Values are accepted only when the complete combination matches a row in {{ active_company.name }}'s dataset.</p>
+        <div class="form-grid">
+            {% for item in manual_fields %}
+            <div class="dynamic-field"><label for="{{ item.name }}">{{ item.column }}</label>
+                {% if item.kind == 'categorical' %}{{ item.input(id=item.name, class="field-control") }}
+                {% else %}{{ item.input(id=item.name, type="number", step="1" if item.integer else "any", min=item.limits.min if item.limits else none, max=item.limits.max if item.limits else none, placeholder=(item.limits.min|string ~ ' to ' ~ item.limits.max|string) if item.limits else 'Enter a number', class="field-control") }}{% endif %}
+                {% if item.limits and item.kind != 'categorical' %}<small class="field-hint">Dataset range: {{ item.limits.min }} to {{ item.limits.max }}</small>{% endif %}
+                {% for error in item.input.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="record-picker">
+            <label for="record_id">{{ record_label }}</label>
+            {{ form.record_id(id="record_id", list="dataset-record-options", class="field-control", placeholder="Start typing a customer or policy ID", autocomplete="off") }}
+            <datalist id="dataset-record-options">
+                {% for option in record_options %}<option value="{{ option.value }}" label="{{ option.label }}"></option>{% endfor %}
+            </datalist>
+            {% for error in form.record_id.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+            <small class="field-hint">{{ record_count }} complete records available. Select an ID from this company's dataset.</small>
+        </div>
+        {% endif %}
+        <div class="form-actions"><button class="button primary" type="submit">Predict churn <span aria-hidden="true">→</span></button><a class="button quiet" href="{{ url_for('main.bulk_predict') }}">Use bulk CSV</a></div>
+    </form>
+</section>
+{% endif %}
+{% endif %}
+{% if result %}
+<section class="result-card {{ result.risk|lower|replace(' ', '-') }} result-panel">
+    <div class="result-title"><div><p class="eyebrow">PREDICTION SAVED</p><h2>Churn: {{ result.prediction }}</h2></div><span class="risk-pill">{{ result.risk }}</span></div>
+    <div class="probability">
+        {% if result.probability is not none %}<strong>{{ (result.probability * 100)|round(2) }}%</strong><span>churn probability</span><div class="meter"><i style="width: {{ result.probability * 100 }}%"></i></div>
+        {% else %}<strong>Unavailable</strong><span>The model did not return a churn probability.</span>{% endif %}
+    </div>
+    {% if selected_record %}<p class="selected-record">Dataset record <strong>{{ selected_record }}</strong></p>{% endif %}
+    {% if result_values %}<div class="record-value-grid">{% for name, value in result_values.items() %}<div><span>{{ name }}</span><strong>{{ value }}</strong></div>{% endfor %}</div>{% endif %}
+    <div class="result-columns"><div class="result-section"><h3>Risk factors</h3><ul>{% for factor in result.factors %}<li>{{ factor }}</li>{% endfor %}</ul></div><div class="result-section"><h3>Suggested retention actions</h3><ul>{% for action in result.actions %}<li>{{ action }}</li>{% endfor %}</ul></div></div>
+</section>
+{% endif %}
+{% endblock %}

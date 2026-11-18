@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Prediction history | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">PREDICTION RECORDS</p><h1>{% if is_admin %}All predictions{% else %}My prediction history{% endif %}</h1><p class="lede">Search, filter, review, and export saved customer predictions.</p></section>
+<form class="filters" method="get" action="{{ url_for('main.history') }}">
+    <label>Search<input type="search" name="q" value="{{ filters.q }}" placeholder="Customer or service"></label>
+    <label>Prediction<select name="prediction"><option value="">All</option><option value="Yes" {% if filters.prediction == 'Yes' %}selected{% endif %}>Yes</option><option value="No" {% if filters.prediction == 'No' %}selected{% endif %}>No</option></select></label>
+    <label>Risk<select name="risk"><option value="">All</option>{% for level in ['Low Risk','Medium Risk','High Risk'] %}<option value="{{ level }}" {% if filters.risk == level %}selected{% endif %}>{{ level }}</option>{% endfor %}</select></label>
+    <label>From<input type="date" name="from" value="{{ filters['from'] }}"></label>
+    <label>To<input type="date" name="to" value="{{ filters.to }}"></label>
+    <label>Sort<select name="sort"><option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option><option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option><option value="probability" {% if filters.sort == 'probability' %}selected{% endif %}>Highest probability</option></select></label>
+    <button class="button primary" type="submit">Apply</button>
+</form>
+<div class="history-toolbar"><span>{{ pagination.total }} record{{ '' if pagination.total == 1 else 's' }}</span><a class="button secondary small" href="{{ url_for('main.export_history', **filters) }}">Download CSV</a></div>
+<section class="panel">
+    <p class="eyebrow">EMAIL YOUR EXPORT</p>
+    <h2>Send filtered records to your account</h2>
+    <p class="muted">The export will be sent to your signed-in account email: <strong>{{ current_user.email }}</strong>.</p>
+    <form method="post" action="{{ url_for('main.email_history', **filters) }}">
+        {{ email_form.hidden_tag() }}
+        <label for="file_format">{{ email_form.file_format.label.text }}</label>
+        {{ email_form.file_format(id="file_format", class="field-control") }}
+        {% for error in email_form.file_format.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+        <label for="email-message">{{ email_form.message.label.text }}</label>
+        {{ email_form.message(id="email-message", rows="3", maxlength="1000", class="field-control", placeholder="Add a note to the email") }}
+        {% for error in email_form.message.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+        <button class="button primary" type="submit">{{ email_form.submit.label.text }}</button>
+    </form>
+</section>
+{% include "_prediction_table.html" %}
+<div class="pagination"><span>Page {{ pagination.page }} of {{ pagination.pages or 1 }}</span><span>{% if pagination.has_prev %}<a href="{{ url_for('main.history', page=pagination.prev_num, **filters) }}">← Previous</a>{% endif %}{% if pagination.has_next %}<a href="{{ url_for('main.history', page=pagination.next_num, **filters) }}">Next →</a>{% endif %}</span></div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Admin overview | Churn Compass{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">ADMINISTRATION</p><h1>System overview</h1><p class="lede">Account activity, prediction volume, and model-use signals across the workspace.</p></section>
+<div class="stat-grid admin-kpis">
+    <div class="stat-card"><span>Total users</span><strong>{{ total_users }}</strong></div><div class="stat-card accent-green"><span>Active users</span><strong>{{ active_users }}</strong></div><div class="stat-card"><span>Predictions</span><strong>{{ total_predictions }}</strong></div><div class="stat-card accent-red"><span>Churn predictions</span><strong>{{ churned }}</strong></div><div class="stat-card accent-green"><span>Non-churn</span><strong>{{ non_churned }}</strong></div><div class="stat-card accent-yellow"><span>High risk</span><strong>{{ high_risk }}</strong></div><div class="stat-card accent-red"><span>Failed logins today</span><strong>{{ failed_today }}</strong></div>
+</div>
+<div class="chart-grid admin-charts">
+    <section class="panel chart-panel"><div class="panel-heading"><h2>Churn outcomes</h2></div><canvas id="adminChurn"></canvas></section>
+    <section class="panel chart-panel"><div class="panel-heading"><h2>Risk distribution</h2></div><canvas id="adminRisk"></canvas></section>
+    <section class="panel chart-panel"><div class="panel-heading"><h2>Predictions per day</h2></div><canvas id="predictionsPerDay"></canvas></section>
+    <section class="panel chart-panel"><div class="panel-heading"><h2>New users per month</h2></div><canvas id="newUsers"></canvas></section>
+    <section class="panel chart-panel wide"><div class="panel-heading"><h2>Successful and failed logins</h2></div><canvas id="loginOutcomes"></canvas></section>
+</div>
+<section class="admin-shortcuts"><a class="panel shortcut" href="{{ url_for('admin.users') }}"><span class="eyebrow">ACCOUNTS</span><strong>Manage users →</strong></a><a class="panel shortcut" href="{{ url_for('admin.predictions') }}"><span class="eyebrow">MODEL OUTPUT</span><strong>Review predictions →</strong></a><a class="panel shortcut" href="{{ url_for('admin.model_info') }}"><span class="eyebrow">MODEL CARD</span><strong>Inspect model →</strong></a></section>
+{% endblock %}
+{% block scripts %}<script>
+const churnData = {{ churn_chart|tojson }};
+const riskData = {{ risk_chart|tojson }};
+const dayLabels = {{ day_labels|tojson }};
+const dayValues = {{ day_values|tojson }};
+const monthLabels = {{ month_labels|tojson }};
+const monthValues = {{ month_values|tojson }};
+const loginData = {{ login_chart|tojson }};
+const axisStyle = {ticks:{color:'#71827d'},grid:{color:'#e8efeb'}};
+new Chart(document.getElementById('adminChurn'),{type:'doughnut',data:{labels:['Churn','Non-churn'],datasets:[{data:churnData,backgroundColor:['#bd5148','#39856b'],borderWidth:0}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+new Chart(document.getElementById('adminRisk'),{type:'bar',data:{labels:['Low','Medium','High'],datasets:[{data:riskData,backgroundColor:['#39856b','#d89a47','#bd5148'],borderRadius:3}]},options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{precision:0},grid:axisStyle.grid}},plugins:{legend:{display:false}}}});
+function lineChart(id, labels, values, color){new Chart(document.getElementById(id),{type:'line',data:{labels,datasets:[{data:values,borderColor:color,backgroundColor:color+'22',fill:true,tension:.25,pointRadius:2}]},options:{maintainAspectRatio:false,scales:{x:{ticks:{color:'#71827d',maxTicksLimit:7},grid:{display:false}},y:{beginAtZero:true,ticks:{precision:0},grid:axisStyle.grid}},plugins:{legend:{display:false}}}})}
+lineChart('predictionsPerDay',dayLabels,dayValues,'#176c63');
+lineChart('newUsers',monthLabels,monthValues,'#e58a4c');
+new Chart(document.getElementById('loginOutcomes'),{type:'bar',data:{labels:['Successful','Failed'],datasets:[{data:loginData,backgroundColor:['#39856b','#bd5148'],borderRadius:3}]},options:{maintainAspectRatio:false,indexAxis:'y',scales:{x:{beginAtZero:true,ticks:{precision:0}}},plugins:{legend:{display:false}}}});
+</script>{% endblock %}

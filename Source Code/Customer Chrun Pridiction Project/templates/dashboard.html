@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading dashboard-welcome">
+    <div><p class="eyebrow">COMPANY WORKSPACES</p><h1>Choose a company</h1><p class="lede">Open a company workspace, then use its prediction, history, and data tools.</p></div>
+    {% if active_company %}<span class="workspace-company">Current workspace<strong>{{ active_company.name }}</strong></span>{% endif %}
+</section>
+
+<section class="company-card-grid" aria-label="Available company workspaces">
+    {% for item in company_cards %}
+    <article class="company-card {% if active_company and item.company.id == active_company.id %}selected{% endif %}">
+        <div class="company-card-head"><span class="company-mark">{{ item.company.name[:1] }}</span><span class="company-industry">{{ item.company.industry }}</span></div>
+        <h2>{{ item.company.name }}</h2>
+        <p>{{ item.company.description or 'Customer churn workspace' }}</p>
+        <dl class="company-card-stats"><div><dt>Dataset</dt><dd>{% if item.dataset %}{{ '{:,}'.format(item.dataset.row_count) }} rows{% else %}Not added{% endif %}</dd></div><div><dt>Active model</dt><dd>{{ item.model.algorithm if item.model else 'Not trained' }}</dd></div><div><dt>Predictions</dt><dd>{{ item.prediction_count }}</dd></div></dl>
+        <form method="post" action="{{ url_for('main.select_company') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="company_id" value="{{ item.company.id }}">
+            <input type="hidden" name="destination" value="prediction">
+            <button class="button primary full" type="submit">Open workspace <span aria-hidden="true">→</span></button>
+        </form>
+    </article>
+    {% else %}
+    <div class="company-empty"><p class="eyebrow">NO WORKSPACES YET</p><h2>No company is assigned to your account.</h2>{% if current_user.role == 'admin' %}<p class="muted">Create or review a company workspace to get started.</p><a class="button primary" href="{{ url_for('admin.companies') }}">Manage companies</a>{% else %}<p class="muted">Ask an administrator to grant your account access to a company workspace.</p>{% endif %}</div>
+    {% endfor %}
+</section>
+
+<div class="stat-grid dashboard-stats">
+    <div class="stat-card"><span>Predictions</span><strong>{{ total }}</strong></div>
+    <div class="stat-card accent-red"><span>Churn predicted</span><strong>{{ churned }}</strong></div>
+    <div class="stat-card accent-green"><span>Retained</span><strong>{{ non_churned }}</strong></div>
+    <div class="stat-card accent-yellow"><span>High risk</span><strong>{{ high_risk }}</strong></div>
+</div>
+
+<section class="module-section" aria-labelledby="workspace-modules">
+    <div class="module-section-heading"><div><p class="eyebrow">YOUR WORKSPACE</p><h2 id="workspace-modules">Modules</h2></div><span>5 available</span></div>
+    <div class="module-grid">
+        <a class="module-card module-primary" href="{{ url_for('main.prediction') }}"><span class="module-index">01 / PREDICT</span><span class="module-title">Customer prediction</span><span class="module-description">Assess an individual customer and get a churn risk result.</span><span class="module-action">Open module <b aria-hidden="true">→</b></span></a>
+        <a class="module-card" href="{{ url_for('main.history') }}"><span class="module-index">02 / RECORDS</span><span class="module-title">Prediction history</span><span class="module-description">Search, review, and export saved prediction records.</span><span class="module-action">Open module <b aria-hidden="true">→</b></span></a>
+        <a class="module-card" href="{{ url_for('main.bulk_predict') }}"><span class="module-index">03 / IMPORT</span><span class="module-title">Bulk CSV</span><span class="module-description">Score a customer file and download the results.</span><span class="module-action">Open module <b aria-hidden="true">→</b></span></a>
+        <a class="module-card" href="{{ url_for('main.analytics') }}"><span class="module-index">04 / DATA</span><span class="module-title">Analytics</span><span class="module-description">Explore dataset quality, churn distribution, and features.</span><span class="module-action">Open module <b aria-hidden="true">→</b></span></a>
+        <a class="module-card" href="{{ url_for('main.performance') }}"><span class="module-index">05 / MODEL</span><span class="module-title">Model performance</span><span class="module-description">Review model metrics and evaluation results.</span><span class="module-action">Open module <b aria-hidden="true">→</b></span></a>
+    </div>
+</section>
+
+{% if current_user.role == 'admin' %}
+<section class="module-section admin-module-section" aria-labelledby="admin-modules">
+    <div class="module-section-heading"><div><p class="eyebrow">ADMINISTRATION</p><h2 id="admin-modules">Manage workspace</h2></div><span>Admin modules</span></div>
+    <div class="admin-module-links">
+        <a href="{{ url_for('admin.dashboard') }}">Admin overview <span>→</span></a>
+        <a href="{{ url_for('admin.companies') }}">Companies <span>→</span></a>
+        <a href="{{ url_for('admin.company_comparison') }}">Company comparison <span>→</span></a>
+        <a href="{{ url_for('admin.users') }}">Users <span>→</span></a>
+        <a href="{{ url_for('admin.predictions') }}">All predictions <span>→</span></a>
+        <a href="{{ url_for('admin.login_logs') }}">Login activity <span>→</span></a>
+        <a href="{{ url_for('admin.activity_logs') }}">Admin activity <span>→</span></a>
+        <a href="{{ url_for('admin.model_info') }}">Model information <span>→</span></a>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

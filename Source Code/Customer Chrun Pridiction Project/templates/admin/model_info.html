@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Model information | Churn Compass{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">ADMINISTRATION / MODEL CARD</p><h1>Model information</h1><p class="lede">The production estimator and its evaluation on the project's stratified test split.</p></section>
+<div class="model-summary"><section class="panel model-facts"><p class="eyebrow">DEPLOYED ESTIMATOR</p><h2>Random Forest Classifier</h2><div class="profile-facts"><div><span>Estimators</span><strong>{{ model.n_estimators if model else 'Unavailable' }}</strong></div><div><span>Maximum depth</span><strong>{{ model.max_depth if model else 'Unavailable' }}</strong></div><div><span>Features</span><strong>{{ model.n_features_in_ if model else 'Unavailable' }}</strong></div><div><span>Decision threshold</span><strong>0.50 model class · risk at 30% / 60%</strong></div></div></section>
+<section class="panel"><p class="eyebrow">TEST METRICS</p><div class="metric-list">{% for label, key in [('Accuracy','accuracy'),('Precision','precision'),('Recall','recall'),('F1 score','f1')] %}<div><span>{{ label }}</span><strong>{{ metrics.get(key, 0) }}%</strong></div>{% else %}<p class="muted">Evaluation is unavailable.</p>{% endfor %}</div></section></div>
+<div class="two-column model-lower"><section class="panel"><p class="eyebrow">EVALUATION</p><h2>Confusion matrix</h2><p class="muted">Rows are actual class; columns are predicted class. Class 0 is no churn and class 1 is churn.</p><table class="matrix"><thead><tr><th></th><th>Predicted 0</th><th>Predicted 1</th></tr></thead><tbody><tr><th>Actual 0</th><td>{{ matrix[0][0] }}</td><td>{{ matrix[0][1] }}</td></tr><tr><th>Actual 1</th><td>{{ matrix[1][0] }}</td><td>{{ matrix[1][1] }}</td></tr></tbody></table></section><section class="panel chart-panel"><div class="panel-heading"><h2>Feature importance</h2></div><canvas id="featureImportance"></canvas></section></div>
+{% endblock %}
+{% block scripts %}<script>
+const featureNames = {{ feature_names|tojson }};
+const featureValues = {{ feature_values|tojson }};
+new Chart(document.getElementById('featureImportance'),{type:'bar',data:{labels:featureNames,datasets:[{label:'Importance (%)',data:featureValues,backgroundColor:'#176c63',borderRadius:3}]},options:{indexAxis:'y',maintainAspectRatio:false,scales:{x:{beginAtZero:true}},plugins:{legend:{display:false}}}});
+</script>{% endblock %}

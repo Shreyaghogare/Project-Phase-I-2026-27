@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f8f5">
+    <title>{% block title %}Churn Compass{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="{{ url_for('main.dashboard') if current_user.is_authenticated else url_for('auth.login') }}"><span class="brand-mark">CC</span><span>Churn Compass</span></a>
+        {% if current_user.is_authenticated %}
+        <details class="account-menu"><summary><span class="topbar-name">{{ current_user.name }}</span><span class="role-badge {{ current_user.role }}">{{ current_user.role|title }}</span><span class="account-caret" aria-hidden="true">⌄</span></summary><div class="account-popover"><a href="{{ url_for('main.profile') }}">Profile and settings</a><form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">Log out</button></form></div></details>
+        {% else %}
+        <nav class="guest-nav"><a href="{{ url_for('auth.login') }}">Sign in</a><a class="button primary small" href="{{ url_for('auth.register') }}">Create account</a></nav>
+        {% endif %}
+    </header>
+    <div class="app-frame {% if not current_user.is_authenticated %}guest-frame{% endif %}">
+        {% if current_user.is_authenticated %}
+        <aside class="sidebar">
+        {% if accessible_companies %}
+        <div class="company-switcher">
+            <form method="post" action="{{ url_for('main.select_company') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label for="company-select">Active company</label>
+                <select id="company-select" name="company_id" onchange="this.form.submit()">
+                    {% for company in accessible_companies %}
+                    <option value="{{ company.id }}" {% if active_company and company.id == active_company.id %}selected{% endif %}>{{ company.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        {% endif %}
+            <p class="sidebar-label">WORKSPACE</p>
+            <a class="side-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}"><span class="side-icon">▦</span>Dashboard</a>
+            <a class="side-link {% if request.endpoint in ('main.prediction', 'main.predict') %}active{% endif %}" href="{{ url_for('main.prediction') }}"><span class="side-icon">＋</span>Predict churn</a>
+            <a class="side-link {% if request.endpoint == 'main.history' %}active{% endif %}" href="{{ url_for('main.history') }}"><span class="side-icon">◷</span>Prediction history</a>
+            <a class="side-link {% if request.endpoint == 'main.bulk_predict' %}active{% endif %}" href="{{ url_for('main.bulk_predict') }}"><span class="side-icon">⇧</span>Bulk prediction</a>
+            <a class="side-link {% if request.endpoint == 'main.analytics' %}active{% endif %}" href="{{ url_for('main.analytics') }}"><span class="side-icon">◫</span>Analytics</a>
+            <a class="side-link {% if request.endpoint == 'main.performance' %}active{% endif %}" href="{{ url_for('main.performance') }}"><span class="side-icon">⌁</span>Model performance</a>
+            {% if current_user.role == 'admin' %}
+            <p class="sidebar-label sidebar-section">ADMINISTRATION</p>
+            <a class="side-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}"><span class="side-icon">◫</span>Admin overview</a>
+            <a class="side-link {% if request.endpoint == 'admin.companies' %}active{% endif %}" href="{{ url_for('admin.companies') }}"><span class="side-icon">▣</span>Companies</a>
+            <a class="side-link {% if request.endpoint == 'admin.company_comparison' %}active{% endif %}" href="{{ url_for('admin.company_comparison') }}"><span class="side-icon">⇄</span>Company comparison</a>
+            <a class="side-link {% if request.endpoint == 'admin.users' %}active{% endif %}" href="{{ url_for('admin.users') }}"><span class="side-icon">♙</span>Users</a>
+            <a class="side-link {% if request.endpoint == 'admin.predictions' %}active{% endif %}" href="{{ url_for('admin.predictions') }}"><span class="side-icon">◧</span>All predictions</a>
+            <a class="side-link {% if request.endpoint == 'admin.login_logs' %}active{% endif %}" href="{{ url_for('admin.login_logs') }}"><span class="side-icon">⌁</span>Login activity</a>
+            <a class="side-link {% if request.endpoint == 'admin.activity_logs' %}active{% endif %}" href="{{ url_for('admin.activity_logs') }}"><span class="side-icon">≡</span>Admin activity</a>
+            <a class="side-link {% if request.endpoint == 'admin.model_info' %}active{% endif %}" href="{{ url_for('admin.model_info') }}"><span class="side-icon">◌</span>Model information</a>
+            {% endif %}
+            <div class="sidebar-bottom"><span class="sidebar-mark">CC</span><span>Customer intelligence<br><small>Prediction workspace</small></span></div>
+        </aside>
+        {% endif %}
+        <main class="page-shell">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}<div class="alert {{ category }}" role="status">{{ message }}</div>{% endfor %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <footer>Churn Compass <span>·</span> Customer churn prediction</footer>
+    <script>
+    document.querySelectorAll('[data-dialog-open]').forEach((button) => button.addEventListener('click', () => document.getElementById(button.dataset.dialogOpen)?.showModal()));
+    document.querySelectorAll('[data-dialog-close]').forEach((button) => button.addEventListener('click', () => button.closest('dialog')?.close()));
+    document.querySelectorAll('dialog').forEach((dialog) => dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); }));
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

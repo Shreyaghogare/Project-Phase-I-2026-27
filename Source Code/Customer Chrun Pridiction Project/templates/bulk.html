@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Bulk prediction | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">BATCH WORKFLOW{% if active_company %} / {{ active_company.name|upper }}{% endif %}</p><h1>Bulk prediction</h1><p class="lede">Upload customers for the active company's dataset. If any row contains a missing or invalid value, the entire file is rejected and no predictions are saved.</p></section>
+{% if schema_error %}<div class="alert error" role="alert">{{ schema_error }}</div>{% endif %}
+{% if not model_available and not schema_error %}<div class="alert warning" role="status">This company has no model trained on its current dataset. An administrator must train one before valid rows can be scored.</div>{% endif %}
+<div class="two-column bulk-layout">
+    <section class="panel">
+        <p class="eyebrow">UPLOAD DATA</p>
+        <h2>Choose a CSV file</h2>
+        <form method="post" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <label for="file">Customer CSV (up to 500 rows)</label>
+            {{ form.file(id="file", accept=".csv,text/csv", class="field-control") }}
+            {% for error in form.file.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+
+            <label class="checkbox-row" style="margin-top: 1rem; margin-bottom: 0.5rem;">
+                {{ form.email_results(id="email_results") }}
+                <span>Email results to my registered account ({{ current_user.email }})</span>
+            </label>
+
+            <div id="bulk-email-fields" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+                <label for="file_format">{{ form.file_format.label.text }}</label>
+                {{ form.file_format(id="file_format", class="field-control") }}
+                {% for error in form.file_format.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+
+                <label for="bulk-message" style="margin-top: 0.5rem;">{{ form.message.label.text }}</label>
+                {{ form.message(id="bulk-message", rows="2", maxlength="1000", class="field-control", placeholder="Add an optional note to the email") }}
+                {% for error in form.message.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+            </div>
+
+            <button class="button primary" type="submit" {% if schema_error %}disabled{% endif %}>Validate and predict</button>
+        </form>
+    </section>
+    <section class="panel"><p class="eyebrow">COMPANY DATASET</p><h2>Required columns</h2><p class="muted">Use exactly these columns. Each value is checked against the selected company's dataset.</p>
+        {% if column_details %}<div class="company-schema-list">{% for item in column_details %}<div><strong>{{ item.name }}</strong><span>{% if item.kind == 'categorical' %}{{ item.categories|join(', ') }}{% elif item.limits %}{{ item.limits.min }} to {{ item.limits.max }}{% else %}Number{% endif %}</span></div>{% endfor %}</div>{% else %}<p class="empty-state">No active dataset schema is available.</p>{% endif %}
+        {% if required_columns %}<a class="text-link" href="{{ url_for('main.bulk_template') }}">Download sample CSV (up to 500 complete rows) →</a>{% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}About | Churn Compass{% endblock %}
+{% block content %}
+<section class="about-hero"><p class="eyebrow">ABOUT THE PROJECT</p><h1>Customer Churn Prediction</h1><p class="lede">Predict whether a customer is likely to leave a service using customer and service-related information.</p></section>
+<div class="two-column about-grid"><section class="panel"><p class="eyebrow">TECHNOLOGY</p><h2>Built for a clear viva</h2><ul class="clean-list"><li>Python and Flask for the web application</li><li>Pandas and NumPy for data preparation</li><li>Scikit-learn for machine learning</li><li>HTML, CSS and JavaScript for the interface</li></ul></section><section class="panel"><p class="eyebrow">MACHINE LEARNING</p><h2>How it works</h2><p>The existing Random Forest Classifier receives the same encoded features used during training. Its prediction probability is translated into a low, medium, or high risk level for the customer profile.</p><p class="muted">Logistic Regression, Decision Tree, and a comparable Random Forest are evaluated on the Performance page.</p></section></div>
+{% endblock %}

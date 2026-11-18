@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Dataset Analysis | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">DATASET ANALYSIS</p><h1>Know the data behind the prediction.</h1><p class="lede">These figures are calculated directly from <strong>cleaned_dataset.csv</strong>.</p></section>
+<div class="stat-grid compact"><div class="stat-card"><span>Number of Records</span><strong>{{ records }}</strong></div><div class="stat-card"><span>Number of Features</span><strong>{{ features }}</strong></div><div class="stat-card accent-red"><span>Churned</span><strong>{{ churned }}</strong></div><div class="stat-card accent-green"><span>Non-Churned</span><strong>{{ retained }}</strong></div></div>
+<div class="two-column"><section class="panel"><p class="eyebrow">SCHEMA</p><h2>Available feature names</h2><div class="tag-list">{% for name in feature_names %}<span>{{ name }}</span>{% endfor %}</div></section><section class="panel"><p class="eyebrow">DATA QUALITY</p><h2>Missing values</h2><div class="quality-list">{% for name, value in missing.items() %}<div><span>{{ name }}</span><strong class="{% if value %}warning{% endif %}">{{ value }}</strong></div>{% endfor %}</div></section></div>
+{% endblock %}

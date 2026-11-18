@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Model Performance | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">MODEL PERFORMANCE</p><h1>Compare the signals, not just the score.</h1><p class="lede">All models use the same stratified 80/20 test split. Metrics are calculated when this page loads from the current dataset.</p></section>
+<section class="panel table-panel"><div class="table-wrap"><table><thead><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1-score</th></tr></thead><tbody>{% for name, metrics in results.items() %}<tr><td><strong>{{ name }}</strong></td><td>{{ metrics.accuracy }}%</td><td>{{ metrics.precision }}%</td><td>{{ metrics.recall }}%</td><td>{{ metrics.f1 }}%</td></tr>{% endfor %}</tbody></table></div></section>
+<section class="panel matrix-panel"><div><p class="eyebrow">EXISTING RANDOM FOREST</p><h2>Confusion matrix</h2><p class="muted">Rows are actual values; columns are predicted values. The encoded classes are 0 = no churn and 1 = churn.</p></div><table class="matrix"><thead><tr><th></th><th>Predicted 0</th><th>Predicted 1</th></tr></thead><tbody><tr><th>Actual 0</th><td>{{ matrix[0][0] }}</td><td>{{ matrix[0][1] }}</td></tr><tr><th>Actual 1</th><td>{{ matrix[1][0] }}</td><td>{{ matrix[1][1] }}</td></tr></tbody></table></section>
+{% endblock %}

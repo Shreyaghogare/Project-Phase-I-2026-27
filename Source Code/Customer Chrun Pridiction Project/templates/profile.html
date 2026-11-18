@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}My profile | Churn Compass{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">ACCOUNT SETTINGS</p><h1>My profile</h1><p class="lede">Manage your account details and security.</p></section>
+<div class="profile-grid">
+    <section class="panel">
+        <div class="profile-summary"><div class="avatar">{{ current_user.name[:1]|upper }}</div><div><h2>{{ current_user.name }}</h2><p>{{ current_user.email }} <span class="role-badge {{ current_user.role }}">{{ current_user.role|title }}</span></p></div></div>
+        <div class="profile-facts"><div><span>Member since</span><strong>{{ current_user.created_at.strftime('%B %d, %Y') }}</strong></div><div><span>Last login</span><strong>{{ current_user.last_login.strftime('%b %d, %Y %H:%M') if current_user.last_login else 'Not available' }}</strong></div><div><span>Role</span><strong>{{ current_user.role|title }}</strong></div><div><span>Total predictions</span><strong>{{ prediction_count }}</strong></div></div>
+        <h3 class="section-title">Recent login activity</h3>
+        {% if login_activities %}<ul class="login-activity">{% for item in login_activities %}<li><strong class="{{ 'success-text' if item.success else 'danger-text' }}">{{ 'Successful sign in' if item.success else 'Failed sign in' }}</strong><span>{{ item.timestamp.strftime('%Y-%m-%d %H:%M') }} · {{ item.ip_address or 'Unknown IP' }}</span></li>{% endfor %}</ul>{% else %}<p class="muted">No login activity recorded yet.</p>{% endif %}
+        <form method="post" action="{{ url_for('auth.logout') }}" class="profile-logout"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button primary" type="submit">Log out</button></form>
+    </section>
+    <div class="profile-settings">
+        <section class="panel"><p class="eyebrow">PERSONAL DETAILS</p><h2>Edit name</h2><form method="post" action="{{ url_for('main.edit_profile') }}">{{ profile_form.hidden_tag() }}<label for="name">Full name</label>{{ profile_form.name(id="name", maxlength="50", class="field-control") }}{% for error in profile_form.name.errors %}<span class="field-error">{{ error }}</span>{% endfor %}<button class="button primary" type="submit">Save profile</button></form></section>
+        <section class="panel password-panel"><p class="eyebrow">SECURITY</p><h2>Change password</h2><form method="post" action="{{ url_for('main.change_password') }}">{{ password_form.hidden_tag() }}<label for="current_password">Current password</label>{{ password_form.current_password(id="current_password", autocomplete="current-password", class="field-control") }}{% for error in password_form.current_password.errors %}<span class="field-error">{{ error }}</span>{% endfor %}<label for="new_password">New password</label>{{ password_form.password(id="new_password", autocomplete="new-password", class="field-control") }}{% for error in password_form.password.errors %}<span class="field-error">{{ error }}</span>{% endfor %}<label for="confirm_password">Confirm new password</label>{{ password_form.confirm_password(id="confirm_password", autocomplete="new-password", class="field-control") }}{% for error in password_form.confirm_password.errors %}<span class="field-error">{{ error }}</span>{% endfor %}<button class="button secondary" type="submit">Update password</button></form></section>
+    </div>
+</div>
+{% endblock %}
